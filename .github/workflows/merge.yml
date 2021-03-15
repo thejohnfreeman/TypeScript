@@ -1,0 +1,35 @@
+name: Merge latest release
+on:
+  workflow_dispatch:
+  schedule:
+    # 8am UTC is 2am or 3am in Houston.
+    - cron: 0 8 * * *
+
+jobs:
+  job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: docs
+          # Fetch all history.
+          fetch-depth: 0
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/microsoft/TypeScript.git
+          git fetch upstream master
+      - name: Merge upstream
+        run: |
+          git branch bookmark
+          git merge upstream/master -m 'Merge upstream'
+      - name: Remove new workflows
+        run: |
+          git config user.name 'GitHub Action'
+          git config user.email 'action@github.com'
+          git rm -r .github/workflows
+          git checkout bookmark -- .github/workflows
+          git diff --cached --quiet || git commit -m 'Remove workflows'
+      - name: Push
+        run: |
+          git push -f origin docs
