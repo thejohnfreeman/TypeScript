@@ -1,0 +1,25 @@
+name: Publish documentation
+on:
+  push:
+    branches:
+      - docs
+
+jobs:
+  job:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          npm install
+          npm install typedoc
+      - name: Generate sources
+        run: npx gulp tsc
+      - name: Build documentation
+        run: npx typedoc --readme none lib/typescript.d.ts
+      - name: Publish
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs
