@@ -1,4 +1,4 @@
-name: Merge latest release
+name: Rebase onto latest release
 on:
   workflow_dispatch:
   schedule:
@@ -19,17 +19,14 @@ jobs:
         run: |
           git remote add upstream https://github.com/microsoft/TypeScript.git
           git fetch upstream master
-      - name: Merge upstream
-        run: |
-          git branch bookmark
-          git merge upstream/master -m 'Merge upstream'
-      - name: Remove new workflows
+          git checkout upstream/master
+      - name: Remove workflows
         run: |
           git config user.name 'GitHub Action'
           git config user.email 'action@github.com'
           git rm -r .github/workflows
-          git checkout bookmark -- .github/workflows
-          git diff --cached --quiet || git commit -m 'Remove workflows'
-      - name: Push
-        run: |
-          git push -f origin docs
+          git commit -m 'Remove workflows'
+      - name: Rebase
+        run: git rebase HEAD docs
+      - name: Push if changed
+        run: git diff origin/docs --quiet || git push -f origin docs
